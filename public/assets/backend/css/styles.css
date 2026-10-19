@@ -1,0 +1,724 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,100..900;1,100..900&display=swap');
+
+*{
+      font-family: "Jost", sans-serif !important;
+}
+.page-wrapper .page-titles{
+    padding: 20px 30px !important;
+}
+.folder_page {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.folder_icon i {
+    color: #ffd60a;
+    font-size: 7rem;
+}
+
+.folder_icon h5 {
+    text-align: center;
+    font-weight: 500;
+    font-size: 15px;
+}
+
+ .table-responsive::-webkit-scrollbar{
+     display: none;
+ }
+
+/* login page start */
+.body_form {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    /* background: url("../assets/loginBg.webp"); */
+    background-size: cover;
+    background-position: center;
+    overflow: hidden;
+}
+
+/* Overlay with RGB color */
+.body_form::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3); /* Example RGB with opacity */
+    z-index: 1;
+}
+
+/* Content inside should appear above the overlay */
+.body_form > * {
+    position: relative;
+    z-index: 2;
+}
+
+
+.form_start{
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.box-title{
+    color:#fff;
+}
+.formsiez{
+    width: 100%;
+   min-width: 35%;
+   max-width: 500px;
+   min-width: 300px;
+ 
+    background-color: #131D4F;
+   color:#fff;
+   border-radius: 10px;
+}
+.cursiorpointer, .forgetopen{
+    cursor: pointer;
+}
+
+/* login page end */
+
+/* navbar departmen */
+.navbar_department{
+    list-style: none;
+}
+.navbar_department li{
+    padding: 0 .5rem;
+}
+.navbar_department li:first-child{
+  border-right: 1px solid #333;
+}
+.navbar_department li a{
+    color: #333;
+    font-size: 15px;
+}
+/* navbar department end*/
+.delete_icon span i{
+ font-size: 1.3rem;
+ cursor: pointer;
+}
+
+.myclassregister span{
+    color: aqua;
+}
+.lable_font label{
+    font-size: 14px;
+}
+.overflowbox{
+    width: 100%;
+    overflow-x: scroll;
+}
+ 
+.overflowbox::-webkit-scrollbar-x{
+    height: 13px;
+}
+.overflowbox::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 5px grey; 
+  border-radius: 10px;
+}
+.overflowbox::-webkit-scrollbar-thumb {
+  background: gainsboro; 
+  border-radius: 10px;
+
+}
+.input_border{
+    border: 1px solid gainsboro !important;
+}
+.editForm{
+    padding: 15px 30px;
+    border: 1px solid gainsboro;
+    border-radius: 10px;
+}
+
+.form-controlEdit{
+       display: block;
+    width: 100%;
+    padding: 4px 8px;
+    font-size: .9375rem;
+    font-weight: 400;
+    line-height: 1.3;
+    color: #54667a;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid #ecf0f2;
+    appearance: none;
+    border-radius: 5px;
+    box-shadow: unset;
+    transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+
+}
+.btn_submit{
+    margin: 1rem 15px;
+}
+.userAssign{
+    border: none;
+    outline: none;
+    padding: 0 5px;
+    border: 1px solid #333;
+}
+.editcolor{
+    color: #777e89;
+}
+.assign_su{
+    color:#0bb2fb;
+}
+.assign_pe{
+    color:red
+}
+/* .overflowbox::-webkit-scrollbar-thumb:hover {
+  background: #b30000; 
+} */
+
+.search_filter_box{
+    width:100%;
+    max-width: 450px;
+    padding: 7px 10px; 
+    border: 1px solid #333;
+    border-radius: 10px;
+}
+
+.search_filter_box input{
+    width: 100%;
+   outline: none;
+   border: none;
+}
+ .styledrop, .styledate{
+    padding: 7px 10px;
+    border-radius: 5px;
+    border: 1px solid grey;
+ }
+
+.taskmanagement input, textarea, select{
+         border: 1px solid gainsboro !important;
+}
+
+
+.diabledbox:disabled {
+    background-color: rgb(245, 245, 245) !important;
+    color: #a9a9a9; 
+    cursor: not-allowed; 
+    
+}
+.dropdown_menu{
+    padding: 2px 10px;
+    font-size: 15px;
+    margin-bottom: 10px;
+}
+.task_d{
+    padding:.5rem 0;
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+
+/* profile image */
+
+.profile-pic {
+  color: transparent;
+  transition: all 0.3s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  transition: all 0.3s ease;
+}
+.profile-pic input {
+  display: none;
+}
+.profile-pic img {
+  position: absolute;
+  object-fit: cover;
+  width: 100px;
+  height: 100px;
+  box-shadow: 0 0 10px 0 rgba(255, 255, 255, 0.35);
+  border-radius: 100px;
+  z-index: 0;
+}
+.profile-pic .-label {
+  cursor: pointer;
+  height: 100px;
+  width: 100px;
+  font-size: 10px;
+  font-weight: 100;
+}
+.profile-pic:hover .-label {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.8);
+  z-index: 10000;
+  color: #fafafa;
+  transition: background-color 0.2s ease-in-out;
+  border-radius: 100px;
+  margin-bottom: 0;
+}
+.profile-pic span {
+  display: inline-flex;
+  padding: 0.2em;
+  height: 2em;
+}
+
+.upload_bg{
+    background-color: #1a9bfc !important;
+    color:#fff !important;
+}
+.border_card{
+    border: 1px solid #e9e9ef !important;
+}
+.uploadade_products{
+    padding: 0 10px 1rem 2rem;
+}
+.uploadade_products h2{
+    color:#333;
+    font-size: 20px;
+}  
+.tdcolor thead th{
+    color:#333 !important;
+} 
+.trbg{
+    background-color: #dfdfdf !important;
+}
+
+.tdcolor tr td{
+ color:black !important;
+}
+.logodashboard{
+    width: 100%;
+}
+.bgmini{
+    width: 90%;
+}
+.wdth{
+    width: fit-content;
+    margin-right: 0px;
+}
+
+
+
+/* for Army Hospital Research And Referral styles start */
+
+.page-wrapper{
+    background: #f4f7fa !important;
+}
+.sidebar-nav ul {
+    padding: 0 10px !important;
+}
+.sidebar-nav ul .sidebar-item .sidebar-link {
+    border-radius: 2px !important;
+    font-size: 14.5px !important;
+}
+.sidebar-nav ul .sidebar-item .sidebar-link i {
+    font-size: 19px !important;
+}
+ 
+#main-wrapper[data-layout=vertical] .left-sidebar[data-sidebarbg=skin6] .sidebar-nav ul .sidebar-item.selected>.sidebar-link {
+    background: #254D70 !important;
+}
+#main-wrapper[data-layout=vertical] .left-sidebar[data-sidebarbg=skin6] .sidebar-nav>ul>.sidebar-item>.sidebar-link.active {
+     background: #254D70 !important;
+}
+
+
+#main-wrapper[data-layout=vertical] .left-sidebar[data-sidebarbg=skin6], #main-wrapper[data-layout=vertical] .left-sidebar[data-sidebarbg=skin6] .sidebar-nav ul,
+#main-wrapper[data-layout=vertical] .topbar .top-navbar .navbar-header[data-logobg=skin6]{
+    background: #131D4F !important;
+}
+/* #main-wrapper[data-layout=vertical] .topbar .navbar-collapse[data-navbarbg=skin6]{
+      background: #454B1B !important;
+} */
+
+.btnlights{
+    background-color: #E6E9F5 !important;
+    color: #131D4F;
+}
+.dashboardText{
+    color: #131D4F !important;
+}
+.btnlights:hover{
+    background-color: #131D4F !important;
+    color: #fff !important;
+}
+
+ #main-wrapper[data-layout=vertical] .left-sidebar[data-sidebarbg=skin6] .sidebar-nav ul .sidebar-item .sidebar-link .feather,  #main-wrapper[data-layout=vertical] .left-sidebar[data-sidebarbg=skin6] .sidebar-nav ul .sidebar-item .sidebar-link, 
+  #main-wrapper[data-layout=vertical] .left-sidebar[data-sidebarbg=skin6] .sidebar-nav ul .sidebar-item .sidebar-link i {
+    color: #fff !important;
+ } 
+ 
+ #main-wrapper[data-layout=vertical] .left-sidebar[data-sidebarbg=skin6] .sidebar-nav ul .sidebar-item .sidebar-link.active{
+    font-weight: 600 !important;
+ }
+ #main-wrapper[data-layout=vertical] .left-sidebar[data-sidebarbg=skin6] .sidebar-nav .has-arrow::after{
+    border-color: #fff !important;
+ }
+
+ .addButton{
+    border: 1px solid #131D4F !important;
+    color: #131D4F !important;
+    font-size: 0.875rem !important;
+    transition: all .3s ease-in-out !important;  
+ }
+ .addButton:hover{
+    background-color: #131D4F !important;
+      color: #fff !important;
+ }
+ .maxInput{
+    width: 100%;
+    max-width: 300px;
+ }
+ .btnBG, .btnBg{
+     background-color: #131D4F !important;
+     color: #fff !important;
+ }
+
+
+ .tableStyle{overflow: auto; }
+ .tableStyle thead{
+    background-color: #131D4F;
+    color: #fff; 
+ }
+ .nameTexts{
+    color: #131D4F;
+ }
+ .reloaduser{font-size: 22px;}
+ .emailsEmp{
+    font-size: 13.5px;
+ }
+  .tableStyle thead th:first-child{
+    border-radius: 5px 0 0 0;
+  }
+  .tableStyle thead th:last-child{
+        border-radius: 0 5px 0 0;
+  }
+
+  .tableStyle thead tr th{
+    padding: 12px 16px !important;
+  }
+
+ .tableStyle tbody tr td{
+    padding: 12px 10px !important;
+  }
+
+  .form-control{
+    border: 1px solid #ced4da !important;
+  }
+  .form-control:focus{
+    border: 1px solid #6a6e48 !important;
+  }
+
+
+  
+.borderRadius{
+    border-radius: 5px !important;
+}
+
+.badgesInfo{
+    display: inline-block;
+    padding: 4px 13px;
+    font-size: .75rem;
+    font-weight: 400;
+    line-height: 1;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 6px;
+}
+.badge--success{
+    background-color: rgba(40, 199, 111, 0.1);
+    border: 1px solid #28c76f !important;
+    color: #28c76f !important;
+}
+
+ 
+
+.editButtons{
+    border: 1px solid #454B1B !important;
+    color: #454B1B !important;
+    margin: 2px 3px;
+    font-weight: 500 !important;
+}
+
+.editButtons i, .confirmationBtn i{
+    font-size: 14px !important;
+}
+/* #28c76f */
+.confirmationBtn{
+    border: 1px solid #eb2222 !important;
+    color: #eb2222 !important;
+     font-weight: 500 !important;
+      margin: 2px 3px;
+}
+
+.Pending--Pending{
+      border: 1px solid #eb2222 !important;
+}
+
+.headerText{
+    font-weight: 500;
+    color: #34495e;
+    margin: 0;
+    line-height: 1.4;
+    font-size: 1.125rem;
+}
+.input-grouptext{
+    display: flex;
+    align-items: center;
+    padding: .375rem .75rem;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #212529;
+    text-align: center;
+    white-space: nowrap;
+    background-color: #e9ecef;
+    border: 1px solid #ced4da;
+    border-radius: .375rem;
+}
+
+.bg-light-secondary{
+   border: 1px solid #000000;
+}
+.bg-light-primary{
+    border: 1px solid #4634ff;
+}
+.bg-light-warning{
+    border:1px solid #ff9f43;
+}
+
+/* From Uiverse.io by WhiteNervosa */ 
+.switch-full-width {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 48px;
+  cursor: pointer;
+}
+
+.switch-full-width input {
+  display: none;
+}
+
+.slider-full {
+  background-color: #ed1c24; /* Red background */
+  color: white;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-left: 50px; /* spacing for knob */
+  height: 100%;
+  border-radius: 8px;
+  transition: background-color 0.3s;
+  position: relative;
+  width: 100%;
+}
+
+.toggle-circle {
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  width: 40px;
+  height: 40px;
+  background-color: #0a0a23;
+  border-radius: 10px;
+  transition: left 0.3s;
+}
+
+.switch-text {
+  flex: 1;
+  text-align: center;
+  z-index: 1;
+}
+
+.switch-full-width input:checked + .slider-full {
+  background-color: #22cc3f; /* Green for 'Featured' */
+}
+
+.switch-full-width input:checked + .slider-full .switch-text {
+  content: "Featured";
+}
+
+.switch-full-width input:checked + .slider-full .toggle-circle {
+  left: calc(100% - 44px); /* Move knob to right */
+}
+
+.custom-switch-width {
+    width: 45px !important;
+}
+
+/* login styles start */
+.logininput{
+    /* border:  1px solid #6a6e48 !important; */ 
+    padding: 0 10px !important;
+    color: #fff !important;
+}
+.logininput::placeholder{
+    color: rgb(161, 160, 160) !important;
+}
+.logininput:focus{
+    border: 1px solid #fff !important;
+}
+.logincontrol{
+    background-image: none !important;
+}
+
+.form-material .form-control, .form-material .form-control.focus, .form-material .form-control:focus{
+    background-image:  none !important;
+}
+/* login styles end */
+/* for Army Hospital Research And Referral styles end */ 
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+    background-color: transparent !important;
+}
+.select2-container--default .select2-selection--multiple .select2-selection__choice{
+    color: #555 !important;
+    font-size: 14px !important;
+}
+
+.profileinput{
+    padding: 0 10px !important;
+}
+
+.permissions_{
+    background: #fafafa;
+    border: 1px solid #f7f7f7;
+    padding: 1rem;
+}
+
+
+
+.room_availity {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn_checked{
+    border: 1px solid #39cb7f !important;
+      box-shadow: none !important;
+      padding: 4px 3px !important;
+      width: 60px;
+      text-align: center;
+}
+
+.btn-check:active+.btn_checked, .btn-check:checked+.btn_checked, .btn_checked.active, .btn_checked:active{
+
+  background-color:#d1f5e1;
+  border-color: #39cb7f;
+  color: #39cb7f;
+} 
+
+.btn-check:disabled + .btn_checked,
+.disabled_label {
+  background-color:#fdf3f5;
+  color: #fc4b6c;
+  border-color: #fc4b6c !important;
+  cursor: not-allowed;
+  opacity: 0.6;
+  pointer-events: none;
+
+}
+ 
+/* Hide default radio */
+
+
+/* job portal css  start*/
+.maxBtn{
+    width: 100%;
+    max-width: 150px;
+}
+
+   .ck-editor__editable_inline {
+      min-height: 150px; /* Adjust height here */
+    }
+/* job portal css  end*/
+
+
+ .formselector .select2-container--default .select2-selection--single {
+    border: none !important;
+ }
+ .formselector .select2-container{
+    padding: 5.7px 12px !important;
+    border: 1px solid #ced4da !important;
+    font-size: .9375rem;
+    font-weight: 400;
+    line-height: 1.5;
+    border-radius: 5px !important;
+        color: #54667a !important;
+ }
+ .formselector .select2-container--default .select2-selection--single .select2-selection__arrow {
+    top: 7px !important;
+ }
+
+ .tabBTNs{
+    padding: 5px 10px !important;
+ }
+ .tabBN .nav-pills .nav-link.active{
+    background-color: transparent !important;
+    color: #131D4F !important;
+    border-bottom: 1px solid #131D4F !important;
+ }
+ .page-item.active .page-link{
+        background-color: #131D4F !important;
+        border-color: #131D4F !important;
+ }
+
+ .borderRadius .dataTables_filter, .borderRadius .dataTables_length, .borderRadius .dataTables_info, .borderRadius  .dataTables_paginate{
+    padding: 15px 10px!important;
+ }
+ .borderRadius .form-control-sm{
+    width: 100% !important;
+    width: 250px !important;
+    padding: 8px 12px !important;
+    font-size: .9375rem !important;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #54667a !important;
+    background-color: #fff;
+    border: 1px solid #131D4F !important;
+    border-radius: 5px !important;
+    box-shadow: unset;
+    transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out !important;
+ }
+ .borderRadius .dataTables_filter{
+    display: flex !important;
+    justify-content: end !important;
+ }
+ .dataTables_empty{
+    text-align: center !important;
+    padding: 15px 0 !important;
+ }
+.table{
+    overflow: auto !important;
+}
+.select2form .select2-container{
+    padding: 0px !important;
+}
+.select2form .select2-container--default .select2-selection--multiple{border: none !important;}
+
+.rolsdrop .dropdown:hover .dropdown-menu {
+  display: block;
+  margin-top: 0.125rem; /* optional, adjusts spacing */
+}
+.table p{
+    margin-bottom: 0px !important;
+}
+.typeText{
+    text-transform: capitalize;
+}
+@media (max-width:668px){
+    .maxInput{
+        width: 100% !important;
+    }
+}   
+ 
+ 
+ 

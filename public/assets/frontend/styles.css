@@ -1,0 +1,612 @@
+@import url('https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,100..900;1,100..900&display=swap'); 
+
+body{
+   background: #f4f7fa !important;
+}
+*{
+    padding: 0px;
+    margin: 0px;
+    box-sizing: border-box;
+     font-family: "Jost", sans-serif !important;
+}
+
+.condidate_header{
+    padding: 15px 0; 
+    /* height: 70px; */
+}
+.company_logo{
+    margin-right: 55px !important;
+}
+.job_list{
+    list-style: none;
+    margin: 0px;
+    padding: 0px;
+}
+.job_list li a{
+    font-size: 17px;
+    font-weight: 500;
+    color: #131D4F;
+    text-decoration: none;
+} 
+.candidate_img{
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+}
+
+.candidate_profile{ 
+    background-color: #fff;
+    outline: none;
+    border-radius: 25px;
+    border: 1px solid #131D4F;
+    padding: 2px 15px;
+    color: #131D4F;
+}
+
+.search_job_element{
+    padding: 5px 15px;
+    border: 1px solid #131D4F;
+    border-radius: 8px;
+    width: 300px;
+    background-color: #f4f7fa;
+}
+
+ 
+.search_job_element input, .search_job_element button{
+    border: 0px ;
+    background-color: #f4f7fa;
+}
+.search_job_element input:focus {
+    border: none;
+    outline: none;
+    box-shadow: none;
+}
+
+.profile_image img{
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 2px solid #131D4F;
+}
+.candidateName{
+    font-size: 19px;
+}
+.designations{
+ font-size: 12px;
+ font-weight: 500;
+}
+.company{
+    font-size: 14px;
+    font-weight: 500;
+}
+.online_day{
+    font-size: 11px;
+    color: #555;
+}
+ .view_profile{
+    padding: 10px 15px;
+    background-color: #131D4F;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: 500;
+ }
+
+ .headings{
+    font-size: 21px;
+ }
+ .linktext{
+    font-weight: 500;
+    font-size: 15px;
+    text-decoration: none;
+ }
+ .tabs_job .nav-pills .nav-link{
+   color: #555;
+    font-weight: 500;
+    font-size: 15px;
+    padding: 5px 0px ;
+    margin: 0 15px;
+ }
+  .tabs_job .nav-pills .nav-link:first-child{
+    margin-left: 0px;
+  }
+ .tabs_job .nav-pills .nav-link.active{
+    border: none;
+    background:  transparent !important;
+    border-bottom: 1px solid #131D4F;
+    color: #000;
+    border-radius: 0px;
+ }
+
+ .campany_logo{
+    width: 30px;
+ }
+ .slicky_elements{
+    padding: 10px;
+ }
+ .sub_headings{
+    font-size: 16.5px;
+    color: #000;
+ }
+ .sub_headings2{
+     font-size: 14.5px;
+     color: #000;
+ }
+ .company_nams{font-weight: 500}
+ .company_nams, .reviews_{
+    font-size: 12.5px;
+ }
+ .reviews_{
+   padding-left: 6px;
+   border-left: 1px solid gainsboro;
+ }
+ .company_reviews{
+    font-size: 12px;
+ }
+ .company_reviews i{
+    color: #FDCC0D;
+ }
+
+ .job_address{
+    color: #555;
+    font-size: 14px;
+ }
+
+ .tabs_job .slick-next{
+    right: -0px !important;
+    background-color: #fff !important;
+ }
+ .tabs_job .slick-prev{
+    left: -0px !important;
+ }
+ 
+ .tabs_job .slick-next:before, .tabs_job .slick-prev{
+    color: #131D4F !important;
+ }
+ .recruterActions{
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 15px;
+ }
+
+ .experience_locations span{
+    font-size: 14px;
+    font-weight: 500;
+    color: #555;
+ }
+  .experience_locations2>div{
+    font-size: 14px;
+    font-weight: 500;
+    color: #555;
+ }
+
+
+ .experience_locations .sets{
+    padding: 0 13px;
+    border-right: 1px solid gainsboro;
+ }
+  .experience_locations .sets:last-child{
+   border-right: none;
+  }
+  .experience_locations .sets:first-child{
+   padding-left: 0px;
+  }
+
+  .openingTime{
+   padding-right: 10px;
+   border-right: 1px solid gainsboro;
+  }
+   .openingTime:last-child{
+      border-right: none;
+   }
+  .applyButton{
+    padding: 8px 0;
+    width: 110px;
+    text-align: center;
+    border: 1px solid #131D4F;
+    font-weight: 500;
+    background: transparent;
+    color: #131D4F;
+    border-radius: 30px;
+  }
+  .applyNow{
+   background-color: #131D4F;
+  }
+  .skill_details li{
+   line-height: 20px;
+  }
+  .skill_check{
+   display: inline-block;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    font-size: 13px;
+  }
+  .matchSkill{
+   background: #47b749;
+   color: #fff;
+  }
+  .skils ul li span{
+   font-size: 13px ;
+  }
+  .notMatch{
+   border: 1px solid #555;
+  }
+  .sub2_heading{
+   font-size: 16px;
+  }
+  .fs14{
+   font-size: 15px;
+  }
+ 
+  .textdark{
+    color:black !important;
+    font-weight: 500;
+    font-size: 15px;
+  }
+  .sider_profile{
+   gap: 30px;
+  }
+ 
+  .keySkillstype li{
+   padding: 5px 10px;
+   border-radius: 20px;
+   border: 1px solid gainsboro;
+   list-style: none;
+   font-size: 14px;
+   margin: 5px;
+   font-weight: 400;
+  }
+
+  .user_profile{
+   width: 75px;
+   height: 75px;
+   border-radius: 50%;
+}
+ 
+.designations_profile{
+   font-size: 14px;
+}
+.profileEdit{
+   font-size: 15px;
+   font-weight: 500;
+}
+ 
+.profile_list{
+   padding: 5px 0;
+   margin: .5rem 0;
+}
+
+.applyjob{
+   padding: 5px 10px;
+   border: 1px solid gainsboro;
+   border-radius: 15px;
+   font-size: 15px;
+}
+
+.nottifications{
+   position: absolute; 
+   width: 15px;
+   height: 15px;
+   color: #fff;
+   font-size: 11px;
+   border-radius: 50%;
+}
+
+.profiles2{
+   width: 150px;
+   height: 150px;
+   border-radius: 50%;
+   border: 1px solid #131D4F;
+   padding: 5px;
+}
+
+.userName2 h1{
+   font-size: 28px;
+}
+.userName2 p{
+   font-size: 14px;
+}
+
+.textmuteds{
+   font-size: 14.5px;
+}
+.border2{
+   padding: 0 20px;
+   border-left: 1px solid gainsboro;
+
+}
+.border2:first-child{
+   padding-left: 0px;
+   border-left: none;
+}
+
+.add_detals{
+   padding: 0px;
+   margin: 0px;
+   list-style: none;
+}
+.add_detals li{
+   display: flex;
+   justify-content: space-between;
+   padding: 8px 15px;
+   border-radius: 20px;
+   margin: .5rem 0;
+}
+.add_detals li:hover{
+   background: #f4f7fa;
+}
+
+.add_detals li a, .add_detals li span{
+   text-decoration: none; 
+   font-size: 14.5px;
+}
+.add_detals li a{
+   font-weight: 500;
+}
+
+.resume_upload{
+   border: 1px dotted #555;
+}
+
+
+
+
+ .upload-box {
+      border: 1px dashed #ccc;
+      border-radius: 10px;
+      padding: 30px 20px;
+      text-align: center;
+      margin: 20px auto;
+      font-family: Arial, sans-serif;
+    }
+
+    .upload-box strong {
+      font-weight: 600;
+    }
+
+    .upload-box a {
+      color: #0073ff;
+      text-decoration: none;
+    }
+
+    .upload-box a:hover {
+      text-decoration: underline;
+    }
+
+    .upload-box p {
+      color: #666;
+      font-size: 14px;
+      margin-top: 8px;
+    }
+
+    .upload-box input[type="file"] {
+      display: none;
+    }
+
+   .upload-box label.upload-label {
+      cursor: pointer;
+    }
+    .subheadins_profile{
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .add_profile_details{
+        font-weight: 500;
+    }
+
+   .input_form .form-group input:focus{
+         outline: none ;
+         box-shadow: none;
+      }
+.selects1, .form-control{
+    box-shadow: none !important;    
+    outline: none !important;       
+    background-color: transparent; 
+}
+
+.modal_pText{
+   font-size: 14px;
+}
+.skillTable thead tr th{
+   color: #555;
+   font-weight: 400;
+   font-size: 15px;
+}
+.skillTable tbody tr td{
+   color: black;
+   font-size: 14px;
+}
+
+.applyButton:disabled{
+   background-color:#47b749;
+   border: 1px solid #47b749;;
+}
+
+.btnoutlinelight{
+   border: 1px solid rgb(244 247 250) !important;
+   color: #333 !important;
+}
+.btnoutlinelight:hover{
+ background: rgb(244 247 250) !important;
+
+}
+.p_font{
+   font-size: 14px;
+}
+.condidate_header{
+   z-index: 9;
+}
+
+.set_profile_image{
+      position: absolute;
+      bottom: 0;
+      right: 22px;
+      font-size: 20px;
+      border: none;
+      background: #fff;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 1px solid #131D4F;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+   }   
+
+   .search_icons{
+      font-size: 25px;
+      cursor: pointer;
+   }
+   #close_seach{
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      display: none;
+   }
+ #job_search_btn{
+   display: none;
+ }
+
+ .form-label{
+   font-size:14.8px!important;
+ }
+ 
+     input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+@media (max-width:992px){
+   .company_logo img{
+      max-width: 120px !important;
+   }
+   .stickytop{
+      margin-top: 1rem;
+   }
+   .home_profile{
+      display: none;
+   }
+   .direction_column{
+      flex-direction: column-reverse;
+   }
+   .keySkillstype{
+      flex-wrap: nowrap !important;
+      overflow: auto;
+   }
+   .hr{
+      width: 100% !important;
+   }
+}
+
+
+@media (max-width:768px){
+   .company_logo img{
+      max-width: 80px !important;
+   }
+   .company_logo{
+      margin-right: 10px !important;
+   }
+   .search_job_element{
+      width: 220px;
+      margin: 0 auto;
+   }
+   .mobile_dnone{
+      display: none;
+   }
+   .userName2{
+      justify-content: center;
+      gap: 0px !important;
+   }
+}
+
+@media(max-width:600px){
+    #job_search_btn{
+      display: inline-block;
+    }
+     .company_logo img{
+         max-width: 150px !important;
+         margin-right: 15px;
+     }
+      .job_list li a{
+         font-size: 20px;
+      }
+
+      .candidate_profile { 
+         border-radius: 20px; 
+         padding: 5px; 
+         margin-left: 4px;
+      }
+      .candidate_img {
+         width: 25px;
+         height: 25px; 
+      }
+     
+      .search_job_element {
+            padding: 6px 6px; 
+            width: 270px; 
+      }
+      #close_seach{
+         right: 10px;
+      }
+
+      .sticky-top{
+         z-index: 1;
+      }
+      .candidate_profile span{
+         display: none;
+      }  
+      .headings{
+         font-size: 17px;
+      }
+
+      .positionrelative_job{
+         position: absolute;
+         top: 0;
+         left: 0;
+         padding: 15px 0;
+         width: 100%;
+         display: flex;
+         justify-content: center;
+         background-color: #fff;
+         display: none;
+      }  
+ 
+       .sub_headings{
+         font-size: 14.5px;
+       }
+       .experience_locations{
+         flex-wrap: wrap; 
+       }
+       .experience_locations .sets {
+         padding: 0px;
+         padding-right: 10px;
+       }
+       .slicky_elements{padding: 0px;}
+       .degree p{
+         font-size: 14px;
+       }
+       .campany_logo{width: 25px; margin-left: 5px;}
+       .applyButton{
+         padding: 5px 0;
+         font-size: 14px;
+       }
+       .profiles2{
+         width: 120px;
+         height: 120px;
+       }
+       .userName2 h1 {
+         font-size: 24px;
+       }
+       .border2{
+         padding: 0 10px;
+       }
+
+}
+ 
+
+ 
