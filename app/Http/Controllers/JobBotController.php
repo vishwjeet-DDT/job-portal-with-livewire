@@ -33,6 +33,7 @@ class JobBotController extends Controller
                 'find candidate', 'find position','search candidate', 'candidate dhundo', 'candidate chahiye',
                 'skill se candidate', 'candidate by skill', 'who has skill', 'kaun jaanta hai',
                 'developer chahiye', 'designer chahiye', 'engineer chahiye', 'candidate list',
+                'candidates with', 'candidates for', 'candidates',
             ],
             'handler' => 'handleFindCandidates',
         ],
@@ -40,7 +41,7 @@ class JobBotController extends Controller
             'patterns' => [
                 'find job', 'job dhundo', 'job chahiye', 'jobs for skill', 'skill ke liye job',
                 'job list', 'available jobs', 'job search', 'kaunsi job', 'jobs available',
-                'job openings', 'vacancies', 'naukri', 'job chahiye',
+                'job openings', 'vacancies', 'naukri', 'job chahiye', 'jobs for',
             ],
             'handler' => 'handleFindJobs',
         ],
@@ -135,13 +136,19 @@ class JobBotController extends Controller
         $request->validate(['resume' => 'required|file|mimes:pdf,doc,docx|max:5120']);
 
         $parser = app(ResumeParserService::class);
-        $text   = $parser->parse($request->file('resume'));
+
+        try {
+            $text = $parser->parse($request->file('resume'));
+        } catch (\Throwable $e) {
+            \Log::warning('Chatbot resume parse failed', ['error' => $e->getMessage()]);
+            $text = '';
+        }
         
         
 
         // dd($text);
         if (!$text) {
-            return $this->respond('⚠️ Resume ka text extract nahi ho saka. PDF ya DOCX try karein.', null);
+            return $this->respond('⚠️ Could not extract text from the resume. Please try a PDF or DOCX file.', null);
         }
 
         $extracted = $this->extractResumeDataWithAI($text['raw_text']) ?? $text;
@@ -149,7 +156,7 @@ class JobBotController extends Controller
 
         if (!$extracted || (!$extracted['name'] && !$extracted['phone'] && !$extracted['email'])) {
             return $this->respond(
-                '🤔 Resume se data extract nahi ho saka. Manually information dein ya alag format try karein.',
+                '🤔 Could not extract details from the resume. Please enter the details manually or try a different format.',
                 null
             );
         }
@@ -158,7 +165,7 @@ class JobBotController extends Controller
         $skills = $extracted['skills'] ?? [];
 
         return $this->respond(
-            '📄 Resume successfully parsed! Yeh details mili:',
+            '📄 Resume parsed successfully! Here are the details found:',
             [
                 'type'      => 'resume_result',
                 'extracted' => $extracted,
@@ -177,7 +184,7 @@ class JobBotController extends Controller
 
         if (!$skill) {
             session(['pending_intent' => 'find_candidates', 'pending_step' => 1]);
-            return $this->respond('🔍 Kaunsi skill ke candidates dhunne hain? (e.g. Laravel, React, PHP)', null);
+            return $this->respond('🔍 Which skill should I search candidates for? (e.g. Laravel, React, PHP)', null);
         }
 
         return $this->searchCandidatesBySkill($skill);
@@ -189,7 +196,7 @@ class JobBotController extends Controller
 
         if (!$skill) {
             session(['pending_intent' => 'find_jobs', 'pending_step' => 1]);
-            return $this->respond('💼 Kis skill ke liye jobs dhunne hain? (e.g. Laravel, React, Python)', null);
+            return $this->respond('💼 Which skill should I search jobs for? (e.g. Laravel, React, Python)', null);
         }
 
         return $this->searchJobsBySkill($skill);
@@ -198,7 +205,7 @@ class JobBotController extends Controller
     private function handleResumeInstruction(string $lower, string $original, $user): JsonResponse
     {
         return $this->respond(
-            '📎 Resume upload karein — main aapka naam, phone, email aur skills extract kar dunga!',
+            '📎 Upload a resume — I will extract the name, phone, email and skills!',
             ['type' => 'resume_upload_prompt']
         );
     }
@@ -212,7 +219,7 @@ class JobBotController extends Controller
         ]);
 
         return $this->respond(
-            '➕ Candidate add karte hain! Sabse pehle candidate ka <strong>pura naam</strong> batayein:',
+            '➕ Let\'s add a candidate! First, enter the candidate\'s <strong>full name</strong>:',
             null
         );
     }
@@ -220,13 +227,13 @@ class JobBotController extends Controller
     private function handleMyProfile(string $lower, string $original, $user): JsonResponse
     {
         if (!$user) {
-            return $this->respond('⚠️ Aap logged in nahi hain.', null);
+            return $this->respond('⚠️ You are not logged in.', null);
         }
 
         $candidate = Candidate::where('user_id', $user->id)->first();
 
         return $this->respond(
-            "👤 Aapki profile details:",
+            "👤 Your profile details:",
             [
                 'type' => 'profile',
                 'rows' => [
@@ -246,22 +253,22 @@ class JobBotController extends Controller
     private function handleHelp(string $lower, string $original, $user): JsonResponse
     {
         return $this->respond(
-            "🤖 Main ye cheezein kar sakta hoon:<br><br>" .
+            "🤖 Here is what I can do:<br><br>" .
             "🔍 <strong>Candidate Search</strong><br>" .
-            "• \"Laravel developer candidates dhundo\"<br>" .
-            "• \"React skill wale candidates\"<br><br>" .
+            "• \"Find Laravel candidates\"<br>" .
+            "• \"Candidates with React skill\"<br><br>" .
             "💼 <strong>Job Search</strong><br>" .
-            "• \"PHP ke liye jobs\"<br>" .
+            "• \"Jobs for PHP\"<br>" .
             "• \"Python developer jobs available\"<br><br>" .
             "📄 <strong>Resume Parse</strong><br>" .
-            "• \"Resume upload\" — naam, phone, email & skills extract<br><br>" .
+            "• \"Resume upload\" — extracts name, phone, email & skills<br><br>" .
             "🎯 <strong>JD Match</strong><br>" .
-            "• Poora job description paste karke bhejein — matching candidates % ke saath dikhenge<br><br>" .
+            "• Paste a full job description — matching candidates are shown with a match %<br><br>" .
             "➕ <strong>Candidate Add</strong><br>" .
             "• \"Add candidate\" — step-by-step form<br><br>" .
             "👤 <strong>My Profile</strong><br>" .
-            "• \"My profile\" — apni details dekho<br><br>" .
-            "🌐 <strong>AI Fallback</strong> — kuch bhi poochho, AI jawab dega!",
+            "• \"My profile\" — view your details<br><br>" .
+            "🌐 <strong>AI Fallback</strong> — ask anything and the AI will answer!",
             null
         );
     }
@@ -298,30 +305,30 @@ class JobBotController extends Controller
             case 1: // Got name
                 $draft['name'] = trim($original);
                 session(['candidate_draft' => $draft, 'pending_step' => 2]);
-                return $this->respond("✅ Naam: <strong>{$draft['name']}</strong><br><br>Ab candidate ka <strong>email</strong> batayein:", null);
+                return $this->respond("✅ Name: <strong>{$draft['name']}</strong><br><br>Now enter the candidate's <strong>email</strong>:", null);
 
             case 2: // Got email
                 if (!filter_var(trim($original), FILTER_VALIDATE_EMAIL)) {
-                    return $this->respond('⚠️ Valid email enter karein (e.g. john@gmail.com):', null);
+                    return $this->respond('⚠️ Please enter a valid email (e.g. john@gmail.com):', null);
                 }
                 $draft['email'] = trim($original);
                 session(['candidate_draft' => $draft, 'pending_step' => 3]);
-                return $this->respond("✅ Email: <strong>{$draft['email']}</strong><br><br>Ab <strong>mobile number</strong> batayein:", null);
+                return $this->respond("✅ Email: <strong>{$draft['email']}</strong><br><br>Now enter the <strong>mobile number</strong>:", null);
 
             case 3: // Got mobile
                 $mobile = preg_replace('/\D/', '', trim($original));
                 if (strlen($mobile) < 10) {
-                    return $this->respond('⚠️ Valid 10-digit mobile number enter karein:', null);
+                    return $this->respond('⚠️ Please enter a valid 10-digit mobile number:', null);
                 }
                 $draft['mobile'] = $mobile;
                 session(['candidate_draft' => $draft, 'pending_step' => 4]);
 
                 return $this->respond(
-                    "✅ Almost done! Yeh details save karein?<br><br>" .
+                    "✅ Almost done! Save these details?<br><br>" .
                     "👤 Name: <strong>{$draft['name']}</strong><br>" .
                     "📧 Email: <strong>{$draft['email']}</strong><br>" .
                     "📱 Mobile: <strong>{$draft['mobile']}</strong><br><br>" .
-                    "\"<em>yes</em>\" ya \"<em>haan</em>\" type karein confirm karne ke liye, ya \"<em>cancel</em>\" type karein.",
+                    "Type \"<em>yes</em>\" to confirm, or \"<em>cancel</em>\" to cancel.",
                     null
                 );
 
@@ -330,11 +337,11 @@ class JobBotController extends Controller
                     return $this->createCandidate($draft);
                 }
                 session()->forget(['pending_intent', 'pending_step', 'candidate_draft']);
-                return $this->respond('❌ Candidate add karna cancel kar diya.', null);
+                return $this->respond('❌ Adding the candidate was cancelled.', null);
         }
 
         session()->forget(['pending_intent', 'pending_step', 'candidate_draft']);
-        return $this->respond('Kuch galat ho gaya. Dobara try karein.', null);
+        return $this->respond('Something went wrong. Please try again.', null);
     }
 
     private function createCandidate(array $draft): JsonResponse
@@ -342,7 +349,7 @@ class JobBotController extends Controller
         session()->forget(['pending_intent', 'pending_step', 'candidate_draft']);
 
         if (User::where('email', $draft['email'])->exists()) {
-            return $this->respond("⚠️ Is email se pehle se ek account exist karta hai: <strong>{$draft['email']}</strong>", null);
+            return $this->respond("⚠️ An account with this email already exists: <strong>{$draft['email']}</strong>", null);
         }
 
         $nameParts = explode(' ', $draft['name'], 2);
@@ -362,7 +369,7 @@ class JobBotController extends Controller
         Candidate::create(['user_id' => $user->id]);
 
         return $this->respond(
-            "✅ Candidate successfully add ho gaya!<br><br>" .
+            "✅ Candidate added successfully!<br><br>" .
             "👤 Name: <strong>{$user->name}</strong><br>" .
             "📧 Email: <strong>{$user->email}</strong><br>" .
             "🆔 User ID: <strong>{$user->id}</strong>",
@@ -410,13 +417,13 @@ class JobBotController extends Controller
 
         if ($candidates->isEmpty()) {
             return $this->respond(
-                "😔 \"<strong>{$skill}</strong>\" skill ke koi candidate nahi mile.",
+                "😔 No candidates found with the \"<strong>{$skill}</strong>\" skill.",
                 null
             );
         }
 
         return $this->respond(
-            "🔍 \"<strong>{$skill}</strong>\" skill ke <strong>{$candidates->count()}</strong> candidates mile:",
+            "🔍 Found <strong>{$candidates->count()}</strong> candidates with the \"<strong>{$skill}</strong>\" skill:",
             [
                 'columns' => ['Name', 'Position', 'Experience', 'Skills', 'Contact'],
                 'rows' => $candidates->map(fn($c) => [
@@ -470,29 +477,36 @@ class JobBotController extends Controller
         $aiRequired   = $requirements['required_skills'] ?? [];
         $aiPreferred  = $requirements['preferred_skills'] ?? [];
 
-        $matches = $this->jdMatcher->matchCandidates($jdText, $aiRequired, $aiPreferred, 20);
+        $minYears = $this->jdMatcher->requiredExperienceYears($jdText, $requirements['min_experience_years'] ?? null);
+
+        $matches = $this->jdMatcher->matchCandidates($jdText, $aiRequired, $aiPreferred, 20, $minYears);
+
+        $experienceNote = $minYears
+            ? '<br><span style="opacity:.75">JD requires ' . rtrim(rtrim(number_format($minYears, 1), '0'), '.') . '+ years of experience — freshers are excluded.</span>'
+            : '';
 
         if ($matches->isEmpty()) {
             return $this->respond(
-                '😔 Is JD se match karne wale candidates nahi mile — skills, job title, position ya profile summary me se kuch bhi match nahi hua.',
+                '😔 No candidates matched this JD — nothing matched on skills, job title, position or profile summary.' . $experienceNote,
                 null
             );
         }
 
-        $roleLine = !empty($requirements['role_title']) ? " — <strong>{$requirements['role_title']}</strong>" : '';
+        $roleLine = !empty($requirements['role_title']) ? " — <strong>" . e($requirements['role_title']) . "</strong>" : '';
 
         return $this->respond(
-            "🎯 JD match{$roleLine}<br><strong>{$matches->count()}</strong> candidates mile, best match sabse upar:",
+            "🎯 JD match{$roleLine}<br>Found <strong>{$matches->count()}</strong> matching candidates, best match first:{$experienceNote}",
             [
-                'columns' => ['Name', 'Email', 'Match %', 'Matched', 'Position', 'Experience', 'Contact'],
+                'columns' => ['Name', 'Email', 'Match %', 'Matched', 'Position', 'Experience', 'Contact', 'Resume'],
                 'rows' => $matches->map(fn ($m) => [
                     'Name'       => $m['name'],
                     'Email'      => $m['email'] ?? '—',
                     'Match %'    => $m['match_percent'] . '%',
                     'Matched'    => $m['matched_skills'] ?: '—',
                     'Position'   => $m['position'] ?? '—',
-                    'Experience' => $m['experience_type'] ?? '—',
+                    'Experience' => $m['experience'],
                     'Contact'    => $m['contact'],
+                    'Resume'     => $m['resume_url'] ? ['type' => 'link', 'url' => $m['resume_url'], 'label' => 'View Resume'] : '—',
                 ])->toArray(),
             ]
         );
@@ -542,13 +556,13 @@ class JobBotController extends Controller
 
         if ($jobs->isEmpty()) {
             return $this->respond(
-                "😔 \"<strong>{$skill}</strong>\" ke liye koi job nahi mili.",
+                "😔 No jobs found for \"<strong>{$skill}</strong>\".",
                 null
             );
         }
 
         return $this->respond(
-            "💼 \"<strong>{$skill}</strong>\" ke liye <strong>{$jobs->count()}</strong> jobs mili:",
+            "💼 Found <strong>{$jobs->count()}</strong> jobs for \"<strong>{$skill}</strong>\":",
             [
                 'columns' => [
                     'Title',
@@ -615,8 +629,8 @@ class JobBotController extends Controller
 
         if (!$apiKey) {
             return $this->respond(
-                "🤔 \"<em>{$userQuery}</em>\" samajh nahi aaya.<br><br>" .
-                "Jobs/candidates ke liye poochein ya \"<em>help</em>\" type karein.",
+                "🤔 Sorry, I didn't understand \"<em>{$userQuery}</em>\".<br><br>" .
+                "Ask about jobs/candidates or type \"<em>help</em>\".",
                 null
             );
         }
@@ -654,7 +668,7 @@ class JobBotController extends Controller
 
         if (!$reply) {
             return $this->respond(
-                '⚠️ AI se response nahi mila. Thodi der baad dobara try karein.',
+                '⚠️ No response from the AI. Please try again in a moment.',
                 null
             );
         }
@@ -666,17 +680,17 @@ class JobBotController extends Controller
     {
         $date = now()->format('d M Y, l');
         return <<<PROMPT
-        Tum "Job Sphere Assistant" ho — ek job portal ka AI helper jo candidates aur employers ke liye hai.
-        Aaj ki date: {$date} IST.
+        You are "Job Sphere Assistant" — the AI helper of a job portal for candidates and employers.
+        Today's date: {$date} IST.
 
-        User ka sawaal: "{$query}"
+        User's question: "{$query}"
 
         Rules:
-        - Hinglish me jawab do (Hindi + English mix), friendly aur concise
+        - Always reply in English only, even if the question is in Hindi or Hinglish; friendly and concise
         - Maximum 4-5 lines
-        - Thode emojis use karo
-        - Job search, resume, career advice ke saath-saath general questions bhi answer karo
-        - Candidate/job DB data ke liye "candidates dhundo ya jobs dhundo" bol do
+        - Use a few emojis
+        - Answer job search, resume and career advice questions, as well as general questions
+        - For candidate/job data from the database, tell the user to ask "find candidates" or "find jobs"
         PROMPT;
     }
 
@@ -733,7 +747,7 @@ class JobBotController extends Controller
 
             if (!$draft) {
                 return $this->respond(
-                    '⚠️ Koi resume draft nahi mila. Pehle resume upload karein.',
+                    '⚠️ No resume draft found. Please upload a resume first.',
                     null
                 );
             }
@@ -752,7 +766,7 @@ class JobBotController extends Controller
                     'draft'  => $draft,
                 ]);
 
-                return $this->respond('⚠️ ' . $result['message'] . ' Resume dobara upload karein.', null);
+                return $this->respond('⚠️ ' . $result['message'] . ' Please upload the resume again.', null);
             }
 
             $userModel = $result['user'];
@@ -764,7 +778,7 @@ class JobBotController extends Controller
             ]);
 
             return $this->respond(
-                "✅ Candidate successfully add ho gaya!<br><br>" .
+                "✅ Candidate added successfully!<br><br>" .
                 "👤 Name: <strong>{$userModel->name}</strong><br>" .
                 "📧 Email: <strong>{$userModel->email}</strong><br>" .
                 "📱 Mobile: <strong>" . ($userModel->mobile_number ?: '—') . "</strong><br>" .
@@ -784,8 +798,8 @@ class JobBotController extends Controller
             ]);
 
             return $this->respond(
-                '❌ Candidate save karte waqt error aaya.<br>' .
-                'Please logs check karein.',
+                '❌ An error occurred while saving the candidate.<br>' .
+                'Please check the logs.',
                 null
             );
         }

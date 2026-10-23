@@ -82,19 +82,19 @@ class CandidateResumeImportService
         $skills = $extracted['skills'] ?? [];
 
         if (!$name || !$email) {
-            return ['status' => 'error', 'user' => null, 'message' => 'Name ya email missing hai resume data me.'];
+            return ['status' => 'error', 'user' => null, 'message' => 'Name or email is missing in the resume.'];
         }
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            return ['status' => 'error', 'user' => null, 'message' => "Email valid nahi hai: {$email}."];
+            return ['status' => 'error', 'user' => null, 'message' => "Invalid email address: {$email}."];
         }
 
         if (User::where('email', $email)->exists()) {
-            return ['status' => 'skipped', 'user' => null, 'message' => "Is email se pehle se account exist karta hai: {$email}"];
+            return ['status' => 'skipped', 'user' => null, 'message' => "An account with this email already exists: {$email}"];
         }
 
         if (!empty($dedupe['attachment_hash']) && ResumeInboxImport::where('attachment_hash', $dedupe['attachment_hash'])->exists()) {
-            return ['status' => 'skipped', 'user' => null, 'message' => 'Yeh resume pehle se import ho chuka hai.'];
+            return ['status' => 'skipped', 'user' => null, 'message' => 'This resume has already been imported.'];
         }
 
         try {
@@ -103,12 +103,13 @@ class CandidateResumeImportService
             $nameParts = explode(' ', $name, 2);
 
             $userModel = User::create([
-                'name'          => $name,
-                'first_name'    => $nameParts[0],
-                'last_name'     => $nameParts[1] ?? '',
-                'email'         => $email,
-                'mobile_number' => $phone ?: null,
-                'password'      => bcrypt($name . '@123'),
+                'name'            => $name,
+                'first_name'      => $nameParts[0],
+                'last_name'       => $nameParts[1] ?? '',
+                'email'           => $email,
+                'mobile_number'   => $phone ?: null,
+                'experience_type' => $this->experienceType($extracted),
+                'password'        => bcrypt($name . '@123'),
             ]);
 
             $userModel->assignRole('Candidates');
@@ -197,7 +198,7 @@ class CandidateResumeImportService
             return [
                 'status'  => 'created',
                 'user'    => $userModel,
-                'message' => 'Candidate successfully add ho gaya!',
+                'message' => 'Candidate added successfully.',
             ];
         } catch (\Throwable $e) {
             DB::rollBack();
@@ -208,8 +209,22 @@ class CandidateResumeImportService
                 'line'    => $e->getLine(),
             ]);
 
-            return ['status' => 'error', 'user' => null, 'message' => 'Candidate save karte waqt error aaya.'];
+            return ['status' => 'error', 'user' => null, 'message' => 'An error occurred while saving the candidate.'];
         }
+    }
+
+    /**
+     * users.experience_type defaults to 'fresher', so without this every
+     * imported candidate looked like a fresher to the JD matcher.
+     */
+    private function experienceType(array $extracted): string
+    {
+        $years = (float) preg_replace('/[^\d.]/', '', (string) ($extracted['total_experience_years'] ?? ''));
+
+        $hasJobs = collect($extracted['experience'] ?? [])
+            ->contains(fn ($exp) => is_array($exp) && trim((string) ($exp['company_name'] ?? '')) !== '');
+
+        return $years > 0 || $hasJobs ? 'experienced' : 'fresher';
     }
 
     private function parseDateOrNull(?string $date): ?string

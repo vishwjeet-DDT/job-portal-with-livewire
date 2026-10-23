@@ -658,9 +658,9 @@
 
     {{-- Quick Chips --}}
     <div id="jb-suggestions">
-        <button class="jb-chip" onclick="jobBot.send('Laravel developer candidates dhundo')">🔍 Laravel
+        <button class="jb-chip" onclick="jobBot.send('Find Laravel candidates')">🔍 Laravel
             Candidates</button>
-        <button class="jb-chip" onclick="jobBot.send('React ke liye jobs')">💼 React Jobs</button>
+        <button class="jb-chip" onclick="jobBot.send('Jobs for React')">💼 React Jobs</button>
         <button class="jb-chip" onclick="jobBot.send('Resume upload')">📄 Parse Resume</button>
         <button class="jb-chip" onclick="jobBot.send('Add candidate')">➕ Add Candidate</button>
         <button class="jb-chip" onclick="jobBot.send('help')">❓ Help</button>
@@ -704,8 +704,8 @@
     {{-- Confirm Bar (NEW) --}}
   <div class="jb-confirm-bar" id="jb-confirm-bar">
     <span id="jb-confirm-text" style="flex:1;"></span>
-    <button class="jb-confirm-btn jb-confirm-yes" onclick="jobBot.confirmAction(true)">✅ Yes, karo</button>
-    <button class="jb-confirm-btn jb-confirm-no"  onclick="jobBot.confirmAction(false)">❌ Nahi</button>
+    <button class="jb-confirm-btn jb-confirm-yes" onclick="jobBot.confirmAction(true)">✅ Yes</button>
+    <button class="jb-confirm-btn jb-confirm-no"  onclick="jobBot.confirmAction(false)">❌ No</button>
   </div>
 </div>
 
@@ -732,8 +732,8 @@
         // ── Boot ──
         function init() {
             pushBot(
-                'Namaste! 👋 Main <strong>Job Sphere Assistant</strong> hoon.<br>' +
-                'Candidates dhundein, jobs search karein, resume parse karein ya candidate add karein!'
+                'Hello! 👋 I am the <strong>Job Sphere Assistant</strong>.<br>' +
+                'Find candidates, search jobs, parse resumes or add candidates!'
             );
             inp().addEventListener('input', () => {
                 btn().disabled = !inp().value.trim() || isTyping;
@@ -774,8 +774,8 @@
             msgs().innerHTML = '';
             msgId = 1;
             pushBot(
-                'Chat clear ho gaya! 🧹<br>' +
-                'Kya dhundna hai aapko — candidates, jobs, ya resume parse?'
+                'Chat cleared! 🧹<br>' +
+                'What would you like to do — find candidates, search jobs, or parse a resume?'
             );
             chips().style.display = '';
         }
@@ -806,7 +806,7 @@
                 })
                 .catch(() => {
                     setTyping(false);
-                    pushBot('⚠️ Network error aa gaya. Please thodi der baad dobara try karein.');
+                    pushBot('⚠️ Network error. Please try again in a moment.');
                 });
         }
 
@@ -830,7 +830,7 @@
                 })
                 .catch(() => {
                     setTyping(false);
-                    pushBot('⚠️ Resume upload fail ho gayi. PDF ya DOCX try karein (max 5MB).');
+                    pushBot('⚠️ Resume upload failed. Please try a PDF or DOCX file (max 5MB).');
                 });
 
             input.value = '';
@@ -911,12 +911,20 @@
             } else {
                 rows.forEach(r => {
                     tableHtml += '<tr>';
-                    columns.forEach(c => tableHtml += `<td>${escHtml(String(r[c] ?? '—'))}</td>`);
+                    columns.forEach(c => tableHtml += `<td>${renderCell(r[c])}</td>`);
                     tableHtml += '</tr>';
                 });
             }
             tableHtml += `</tbody></table></div>`;
             pushBot(`${headerHtml}${tableHtml}`);
+        }
+
+        // Cells are plain text, or {type:'link', url, label} (e.g. "View Resume").
+        function renderCell(value) {
+            if (value && typeof value === 'object' && value.type === 'link' && /^https?:\/\//i.test(value.url || '')) {
+                return `<a href="${escHtml(value.url)}" target="_blank" rel="noopener noreferrer" style="color:#a78bfa;text-decoration:underline;white-space:nowrap;">${escHtml(value.label || 'View')}</a>`;
+            }
+            return escHtml(String(value ?? '—'));
         }
 
         //   function pushResumeResult(headerHtml, extracted, skills) {
@@ -956,7 +964,7 @@
             <div class="value">${skillTagsHtml}</div>
         </div>
         <div style="margin-top:.6rem;padding:.5rem .6rem;background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.25);border-radius:8px;font-size:.75rem;color:#34d399;">
-            💾 Data sahi lage to <strong>"save karo"</strong> type karein candidate add karne ke liye.
+            💾 If the details look correct, type <strong>"save candidate"</strong> to add the candidate.
         </div>`;
 
             pushBot(`${headerHtml}${html}`);
@@ -1064,7 +1072,7 @@ async function startRecording() {
     setMicUI(true);
 
   } catch (err) {
-    pushBot('⚠️ Microphone access nahi mila. Browser settings check karein.');
+    pushBot('⚠️ Microphone access denied. Please check your browser settings.');
   }
 }
 
@@ -1095,7 +1103,7 @@ function sendAudioToServer() {
   fd.append('audio', blob, 'voice.webm');
 
   setTyping(true);
-  pushBot('🎙️ Voice processing ho raha hai...');
+  pushBot('🎙️ Processing your voice...');
 
   fetch("https://justairports.com/api/speech-to-text", {
     method: 'POST',
@@ -1115,13 +1123,13 @@ function sendAudioToServer() {
     const text = (data.text || '').trim();
 
     if (!text) {
-      pushBot('⚠️ Voice samajh nahi aya. Dobara try karein ya type karein.');
+      pushBot('⚠️ Could not understand the voice input. Please try again or type your message.');
       return;
     }
 
     inp().value    = text;
     btn().disabled = false;
-    pushBot(`🎙️ Suna: "<strong>${escHtml(text)}</strong>"`);
+    pushBot(`🎙️ Heard: "<strong>${escHtml(text)}</strong>"`);
 
     if (pendingConfirm) {
       const lower = text.trim().toLowerCase();
@@ -1138,9 +1146,9 @@ function sendAudioToServer() {
   .catch(err => {
     setTyping(false);
     if (err.message === 'non_json') {
-      pushBot('⚠️ Server error aaya. Dobara try karein.');
+      pushBot('⚠️ Server error. Please try again.');
     } else {
-      pushBot(`⚠️ Voice upload fail ho gayi (${err.message}). Dobara try karein.`);
+      pushBot(`⚠️ Voice upload failed (${err.message}). Please try again.`);
     }
   });
 
@@ -1166,7 +1174,7 @@ function confirmAction(yes) {
   if (yes && pendingConfirm?.query) {
     send(pendingConfirm.query);
   } else {
-    pushBot('👍 Action cancel kar diya.');
+    pushBot('👍 Action cancelled.');
   }
 }
 

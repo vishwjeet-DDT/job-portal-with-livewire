@@ -6,7 +6,7 @@ namespace App\Services;
  * ResumeParserService
  *
  * Extracts Name, Email, Phone, Skills, Education from uploaded resume.
- * Supports PDF and DOCX files.
+ * Supports PDF, DOC, DOCX, RTF and TXT files.
  *
  * Requirements (add to composer.json):
  *   "smalot/pdfparser": "^2.0"
@@ -51,25 +51,26 @@ class ResumeParserService
      */
     public function parseFromPath(string $path, string $extension): array|string
     {
-        $extension = strtolower($extension);
-        $text = '';
-        
+        // Trust the file's real content over its extension: inboxes regularly
+        // contain old binary .doc files, .docx files renamed to .doc, or PDFs
+        // with the wrong extension — feeding those to the wrong reader is what
+        // produced "The archive failed to load with the following error code: 19".
+        $format = $this->detectFormat($path) ?? strtolower($extension);
 
-        if ($extension === 'pdf') {
-            $text = $this->extractFromPdf($path);
-        } elseif (in_array($extension, ['doc', 'docx'])) {
-            $text = $this->extractFromDocx($path);
-        } elseif ($extension === 'txt') {
-            $text = file_get_contents($path);
-        } else {
-            throw new \Exception("Unsupported file type: {$extension}. PDF, DOC, DOCX ya TXT upload karein.");
-        }
+        $text = match ($format) {
+            'pdf'  => $this->extractFromPdf($path),
+            'docx' => $this->extractFromDocx($path),
+            'doc'  => $this->extractFromLegacyDoc($path),
+            'rtf'  => $this->extractWithPhpWord($path, 'RTF'),
+            'txt'  => (string) file_get_contents($path),
+            default => throw new \Exception("Unsupported file type: {$extension}. Please upload a PDF, DOC, DOCX, RTF or TXT file."),
+        };
+
+        $text = $this->normalizeText($text);
 
         if (empty(trim($text))) {
             return '';
         }
-
-        // return $text;
 
         return [
             'name'      => $this->extractName($text),
@@ -81,38 +82,201 @@ class ResumeParserService
         ];
     }
 
-    private function extractFromPdf(string $path): string
+    /**
+     * Sniff the real document format from the file's magic bytes.
+     */
+    private function detectFormat(string $path): ?string
     {
-        // Try smalot/pdfparser first
-        if (class_exists('\Smalot\PdfParser\Parser')) {
-            $parser   = new \Smalot\PdfParser\Parser();
-            $pdf      = $parser->parseFile($path);
-            return $pdf->getText();
-        }
+        $head = (string) @file_get_contents($path, false, null, 0, 8);
 
-        // Fallback: pdftotext system command
-        $output = shell_exec("pdftotext " . escapeshellarg($path) . " -");
-        if ($output) return $output;
-
-        throw new \Exception('PDF parser library nahi mili. `composer require smalot/pdfparser` run karein.');
+        return match (true) {
+            str_starts_with($head, '%PDF')             => 'pdf',
+            str_starts_with($head, "PK\x03\x04")       => 'docx',
+            str_starts_with($head, "\xD0\xCF\x11\xE0") => 'doc',
+            str_starts_with($head, '{\\rtf')           => 'rtf',
+            default                                    => null,
+        };
     }
 
-    private function extractFromDocx(string $path): string
+    private function extractFromPdf(string $path): string
     {
-        if (!class_exists('\PhpOffice\PhpWord\IOFactory')) {
-            throw new \Exception('PhpWord library nahi mili. `composer require phpoffice/phpword` run karein.');
+        // pdftotext (poppler-utils) first: it is much faster and keeps words
+        // intact, while smalot/pdfparser often splits them apart
+        // ("singh .a m an @ gm ail .c o m"), which broke email/name extraction.
+        $output = $this->runCommand('pdftotext', '-layout ' . escapeshellarg($path) . ' -');
+        if ($output && trim($output) !== '') {
+            return $output;
         }
 
-        $phpWord  = \PhpOffice\PhpWord\IOFactory::load($path);
+        if (class_exists('\Smalot\PdfParser\Parser')) {
+            try {
+                $text = (new \Smalot\PdfParser\Parser())->parseFile($path)->getText();
+                if (trim($text) !== '') {
+                    return $text;
+                }
+            } catch (\Throwable $e) {
+                // fall through
+            }
+        }
+
+        throw new \Exception('Could not read text from this PDF (it may be a scanned image or password protected).');
+    }
+
+    /**
+     * Old binary Word (.doc, Word 97-2003). PhpWord's MSDoc reader handles
+     * many files; antiword/catdoc (if installed on the server) are more
+     * reliable, and as a last resort the readable text runs are pulled out
+     * of the binary directly.
+     */
+    private function extractFromLegacyDoc(string $path): string
+    {
+        foreach (['antiword' => '', 'catdoc' => '-w '] as $binary => $flags) {
+            $output = $this->runCommand($binary, $flags . escapeshellarg($path));
+            if ($output && trim($output) !== '') {
+                return $output;
+            }
+        }
+
+        // PhpWord's MSDoc reader decodes 8-bit .doc text as UTF-16, which
+        // yields CJK-looking garbage, so its output is only used when it
+        // actually reads as text; otherwise the raw text runs win.
+        $candidates = [$this->extractRawDocText($path)];
+
+        try {
+            $candidates[] = $this->extractWithPhpWord($path, 'MSDoc');
+        } catch (\Throwable $e) {
+            // ignore — raw extraction is still available
+        }
+
+        usort($candidates, fn ($a, $b) => $this->readableScore($b) <=> $this->readableScore($a));
+
+        return $candidates[0];
+    }
+
+    /**
+     * Rough "is this real text" score: count of Latin letters/digits/spaces.
+     */
+    private function readableScore(string $text): int
+    {
+        return (int) preg_match_all('/[A-Za-z0-9@.,\s]/', $text);
+    }
+
+    /**
+     * Read the DOCX XML directly: unlike PhpWord this also picks up text
+     * boxes, shapes and headers/footers, where many resume templates keep
+     * the name, email and phone. PhpWord is the fallback.
+     */
+    private function extractFromDocx(string $path): string
+    {
+        $zip = new \ZipArchive();
+
+        if ($zip->open($path) === true) {
+            $parts = [];
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                $name = $zip->getNameIndex($i);
+                if (preg_match('#^word/(header\d*|document|footer\d*)\.xml$#', $name)) {
+                    $parts[$name] = $zip->getFromIndex($i);
+                }
+            }
+            $zip->close();
+
+            // header(s) first, then body, then footer(s)
+            uksort($parts, fn ($a, $b) => (str_contains($a, 'header') ? 0 : (str_contains($a, 'document') ? 1 : 2))
+                <=> (str_contains($b, 'header') ? 0 : (str_contains($b, 'document') ? 1 : 2)));
+
+            $text = '';
+            foreach ($parts as $xml) {
+                $xml = preg_replace('#<mc:Fallback>.*?</mc:Fallback>#s', '', (string) $xml); // text boxes are stored twice
+                $xml = preg_replace(['#</w:p>#', '#<w:tab/>#', '#<w:br\s*/>#', '#</w:tc>#'], ["\n", "\t", "\n", ' '], $xml);
+                $text .= html_entity_decode(strip_tags($xml), ENT_QUOTES | ENT_XML1, 'UTF-8') . "\n";
+            }
+
+            if (trim($text) !== '') {
+                return $text;
+            }
+        }
+
+        return $this->extractWithPhpWord($path, 'Word2007');
+    }
+
+    private function extractWithPhpWord(string $path, string $reader): string
+    {
+        if (!class_exists('\PhpOffice\PhpWord\IOFactory')) {
+            throw new \Exception('PhpWord library is missing. Run `composer require phpoffice/phpword`.');
+        }
+
+        $phpWord  = \PhpOffice\PhpWord\IOFactory::load($path, $reader);
         $fullText = '';
 
         foreach ($phpWord->getSections() as $section) {
+            // Many resumes keep name/email/phone in the page header.
+            foreach ($section->getHeaders() as $header) {
+                $fullText .= $this->elementToText($header) . "\n";
+            }
+
             foreach ($section->getElements() as $element) {
                 $fullText .= $this->elementToText($element) . "\n";
+            }
+
+            foreach ($section->getFooters() as $footer) {
+                $fullText .= $this->elementToText($footer) . "\n";
             }
         }
 
         return $fullText;
+    }
+
+    /**
+     * Word 97 stores body text either as 8-bit or UTF-16LE runs inside the
+     * binary; keep runs of readable characters and drop the rest.
+     */
+    private function extractRawDocText(string $path): string
+    {
+        $binary = (string) file_get_contents($path);
+
+        // UTF-16LE text: printable ASCII byte followed by a NUL byte.
+        $utf16 = preg_match_all('/(?:[\x20-\x7E\t\r\n]\x00){4,}/', $binary, $m)
+            ? array_map(fn ($run) => str_replace("\x00", '', $run), $m[0])
+            : [];
+
+        // 8-bit text.
+        $ascii = preg_match_all('/[\x20-\x7E\t\r\n]{6,}/', $binary, $m) ? $m[0] : [];
+
+        // Drop binary noise: keep runs that contain words, not symbol soup.
+        $clean = fn (array $runs) => array_values(array_filter(
+            array_map('trim', $runs),
+            fn ($run) => $run !== '' && preg_match_all('/[A-Za-z]/', $run) >= strlen($run) * 0.5
+        ));
+        $utf16 = $clean($utf16);
+        $ascii = $clean($ascii);
+
+        // The body is whichever encoding holds most of the text; the other one
+        // is mostly style/font tables, so it goes last (raw_text is truncated).
+        $groups = strlen(implode('', $ascii)) >= strlen(implode('', $utf16)) ? [$ascii, $utf16] : [$utf16, $ascii];
+
+        return implode("\n", array_unique(array_merge(...$groups)));
+    }
+
+    private function runCommand(string $binary, string $args): ?string
+    {
+        if (!function_exists('shell_exec') || !trim((string) @shell_exec('command -v ' . escapeshellarg($binary) . ' 2>/dev/null'))) {
+            return null;
+        }
+
+        return @shell_exec($binary . ' ' . $args . ' 2>/dev/null') ?: null;
+    }
+
+    /**
+     * Make sure the text is valid UTF-8 — invalid bytes break json_encode,
+     * the AI request and MySQL inserts.
+     */
+    private function normalizeText(string $text): string
+    {
+        if (!mb_check_encoding($text, 'UTF-8')) {
+            $text = mb_convert_encoding($text, 'UTF-8', 'UTF-8, ISO-8859-1, Windows-1252');
+        }
+
+        return (string) preg_replace('/[^\P{C}\n\t]/u', ' ', $text);
     }
 
     /**
@@ -130,6 +294,17 @@ class ResumeParserService
 
         if (!is_object($element)) {
             return '';
+        }
+
+        if (method_exists($element, 'getRows')) { // Table
+            $text = '';
+            foreach ($element->getRows() as $row) {
+                foreach ($row->getCells() as $cell) {
+                    $text .= $this->elementToText($cell) . ' ';
+                }
+                $text .= "\n";
+            }
+            return $text;
         }
 
         if (method_exists($element, 'getElements')) {

@@ -33,6 +33,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Microsoft 365 OAuth (custom, used when IMAP_AUTHENTICATION=oauth)
+    |--------------------------------------------------------------------------
+    | App-only (client credentials) token from the Entra app registration.
+    | The app needs the Office 365 Exchange Online "IMAP.AccessAsApp"
+    | application permission and mailbox access granted in Exchange Online.
+    */
+    'oauth' => [
+        'tenant_id'     => env('IMAP_OAUTH_TENANT_ID'),
+        'client_id'     => env('IMAP_OAUTH_CLIENT_ID'),
+        'client_secret' => env('IMAP_OAUTH_CLIENT_SECRET'),
+        'scope'         => env('IMAP_OAUTH_SCOPE', 'https://outlook.office365.com/.default'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Default date format
     |--------------------------------------------------------------------------
     |

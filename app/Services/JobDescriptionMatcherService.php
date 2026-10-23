@@ -68,8 +68,10 @@ class JobDescriptionMatcherService
      *
      * Returns a collection of plain arrays, highest match first.
      */
-    public function matchCandidates(string $jdText, array $aiRequiredSkills = [], array $aiPreferredSkills = [], int $limit = 20): Collection
+    public function matchCandidates(string $jdText, array $aiRequiredSkills = [], array $aiPreferredSkills = [], int $limit = 20, ?float $minExperienceYears = null): Collection
     {
+        $requiresExperience = ($minExperienceYears ?? 0) > 0;
+
         $jdLower = mb_strtolower($jdText);
 
         $dbSkillNames = collect(DB::table('skills')->pluck('name'));
@@ -103,15 +105,27 @@ class JobDescriptionMatcherService
                 'u.position',
                 'u.experience_type',
                 'c.summary',
+                'c.resume',
                 DB::raw("GROUP_CONCAT(DISTINCT sk.name SEPARATOR '||') as skills"),
-                DB::raw("GROUP_CONCAT(DISTINCT e.job_title SEPARATOR '||') as job_titles")
+                DB::raw("GROUP_CONCAT(DISTINCT e.job_title SEPARATOR '||') as job_titles"),
+                DB::raw('COUNT(DISTINCT e.id) as employment_count'),
+                DB::raw('MIN(e.joining_date) as first_joining_date')
             )
-            ->groupBy('u.id', 'u.name', 'u.email', 'u.mobile_number', 'u.position', 'u.experience_type', 'c.summary')
+            ->groupBy('u.id', 'u.name', 'u.email', 'u.mobile_number', 'u.position', 'u.experience_type', 'c.summary', 'c.resume')
             ->get();
 
         $results = [];
 
         foreach ($candidates as $candidate) {
+            // users.experience_type defaults to 'fresher', so a candidate with
+            // recorded employment history is treated as experienced too.
+            $isExperienced = $candidate->experience_type === 'experienced' || $candidate->employment_count > 0;
+
+            // A JD that asks for N years of experience must never return freshers.
+            if ($requiresExperience && !$isExperienced) {
+                continue;
+            }
+
             $profileText = mb_strtolower(implode(' ', array_filter([
                 str_replace('||', ' ', $candidate->skills ?? ''),
                 str_replace('||', ' ', $candidate->job_titles ?? ''),
@@ -135,7 +149,9 @@ class JobDescriptionMatcherService
                 'email'           => $candidate->email,
                 'position'        => $candidate->position,
                 'experience_type' => $candidate->experience_type,
+                'experience'      => $this->experienceLabel($isExperienced, $candidate->first_joining_date),
                 'contact'         => $candidate->mobile_number ?: $candidate->email,
+                'resume_url'      => $candidate->resume ? asset('storage/' . $candidate->resume) : null,
                 'match_percent'   => (int) round(min(100, ($hits->count() / $matchedTerms->count()) * 100)),
                 'matched_skills'  => implode(', ', $hits->map('ucfirst')->all()),
                 'sort_weight'     => $hits->count(),
@@ -146,6 +162,52 @@ class JobDescriptionMatcherService
             ->sortByDesc('sort_weight')
             ->values()
             ->take($limit);
+    }
+
+    /**
+     * Minimum years of experience the JD asks for. Prefers the AI-extracted
+     * value and falls back to reading it from the text ("Experience: 8 Years",
+     * "5+ yrs", "3-5 years of experience"), so the fresher filter still works
+     * when the AI call fails.
+     */
+    public function requiredExperienceYears(string $jdText, mixed $aiMinYears = null): ?float
+    {
+        if (is_numeric($aiMinYears) || (is_string($aiMinYears) && preg_match('/\d/', $aiMinYears))) {
+            $years = (float) preg_replace('/[^\d.]/', '', (string) $aiMinYears);
+            if ($years > 0) {
+                return $years;
+            }
+        }
+
+        $patterns = [
+            '/experience\s*(?:required)?\s*[:\-]\s*(\d{1,2}(?:\.\d)?)/i',
+            '/(?:minimum|min\.?|at\s+least)\s*(\d{1,2}(?:\.\d)?)\s*\+?\s*(?:years?|yrs?)/i',
+            '/(\d{1,2}(?:\.\d)?)\s*\+?\s*(?:(?:-|to)\s*\d{1,2}\s*)?(?:years?|yrs?)(?:\s+of)?\s+(?:\w+\s+){0,2}experience/i',
+        ];
+
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $jdText, $m) && (float) $m[1] > 0) {
+                return (float) $m[1];
+            }
+        }
+
+        return null;
+    }
+
+    private function experienceLabel(bool $isExperienced, ?string $firstJoiningDate): string
+    {
+        if (!$isExperienced) {
+            return 'Fresher';
+        }
+
+        if ($firstJoiningDate && strtotime($firstJoiningDate)) {
+            $years = round((time() - strtotime($firstJoiningDate)) / (365.25 * 86400), 1);
+            if ($years >= 0.5) {
+                return "Experienced (~{$years} yrs)";
+            }
+        }
+
+        return 'Experienced';
     }
 
     /**
